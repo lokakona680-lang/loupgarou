@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>الذئب</title>
+<meta name="theme-color" content="#1B1F3B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="الذئب">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#F4F4F8;--surface:#FFFFFF;--surface2:#E9EAF2;--fg:#15172B;--muted:#5F6280;--line:#DADCE8;--accent:#2B3A8C;--accent-ink:#FFFFFF;--danger:#B42318;--ok:#067647;--gold:#B7791F;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0C0E1C;--surface:#161A30;--surface2:#21264A;--fg:#F1F2F8;--muted:#A3A8C8;--line:#2E3560;--accent:#6E7FF0;--accent-ink:#0C0E1C;--danger:#FF6B6B;--ok:#4ADE80;--gold:#F5C469;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0C0E1C;--surface:#161A30;--surface2:#21264A;--fg:#F1F2F8;--muted:#A3A8C8;--line:#2E3560;--accent:#6E7FF0;--accent-ink:#0C0E1C;--danger:#FF6B6B;--ok:#4ADE80;--gold:#F5C469;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,'Segoe UI',Tahoma,Arial,sans-serif;font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+h1,h2,p{margin:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:14px;padding-top:16px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.title{font-size:22px;font-weight:700}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;gap:12px}
+.center{text-align:center;align-items:center}
+.label{font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--muted)}
+.hint{color:var(--muted);font-size:14px}
+.warn{color:var(--danger)}
+.big{font-size:28px;font-weight:700;line-height:1.3;word-break:break-word}
+.role{font-size:30px;font-weight:700;color:var(--gold)}
+.row{display:flex;gap:8px}
+.row input{flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 10px;border-radius:8px;background:var(--surface2);font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.chip button{color:var(--muted);font-size:16px;line-height:1}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.opt{padding:10px 6px;border-radius:10px;background:var(--surface2);font-weight:700;font-size:14px;border:1px solid transparent}
+.opt[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.btn{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--accent);color:var(--accent-ink);width:100%;text-align:center}
+.btn.half{width:auto;flex:0 0 auto;padding:0 16px}
+.btn.alt{background:var(--surface2);color:var(--fg)}
+.list{display:flex;flex-direction:column;gap:8px;width:100%}
+.item{padding:13px 14px;border-radius:10px;background:var(--surface2);font-weight:700;text-align:start}
+.res{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.res:last-child{border-bottom:0}
+.tag{padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#fff}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top"><h1 class="title">لعبة الذئب</h1></header>
+  <div id="app"></div>
+</main>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const ROLES={
+  wolf:{n:'ذئب',c:'#B42318',d:'تستيقظ ليلا مع الذئاب وتختار ضحية.'},
+  villager:{n:'قروي',c:'#067647',d:'لا قدرة خاصة لك. ناقش وصوّت نهارا لكشف الذئاب.'},
+  seer:{n:'العرّافة',c:'#6E7FF0',d:'كل ليلة تكشف هوية لاعب: ذئب أم لا.'},
+  witch:{n:'الساحرة',c:'#A855F7',d:'عندك جرعة إنقاذ وجرعة سم، وكل واحدة تستعملها مرة واحدة فقط.'},
+  hunter:{n:'الصيّاد',c:'#B7791F',d:'إذا قُتل يطلق رصاصة على لاعب آخر.'}
+};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={names:[],opts:{seer:true,witch:true,hunter:true}};
+let G=null;
+
+function loadS(){try{const v=JSON.parse(localStorage.getItem('loup_setup')||'null');if(v&&Array.isArray(v.names))S={names:v.names.slice(0,12),opts:Object.assign({seer:true,witch:true,hunter:true},v.opts||{})};}catch(e){}}
+function saveS(){try{localStorage.setItem('loup_setup',JSON.stringify(S));}catch(e){}}
+function toast(m){const el=$('#toast');el.textContent=m;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,1800);}
+
+// ---------- engine ----------
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function wolfCount(n){let w=Math.max(1,Math.round(n/4));if(w>=n-w)w=Math.max(1,Math.floor((n-1)/2));return w;}
+function alive(){return G.players.map((p,i)=>p.alive?i:-1).filter(i=>i>=0);}
+function aliveWolves(){return alive().filter(i=>G.players[i].role==='wolf');}
+function tally(arr){ // arr of target indexes, returns winner (random among ties) or -1
+  if(!arr.length)return -1;const c={};arr.forEach(t=>c[t]=(c[t]||0)+1);
+  const mx=Math.max(...Object.values(c));const top=Object.keys(c).filter(k=>c[k]===mx).map(Number);
+  return top[Math.floor(Math.random()*top.length)];
+}
+
+function makeGame(names,opts){
+  const n=names.length,w=wolfCount(n);
+  const roles=[];
+  for(let i=0;i<w;i++)roles.push('wolf');
+  if(opts.seer)roles.push('seer');
+  if(opts.witch)roles.push('witch');
+  if(opts.hunter)roles.push('hunter');
+  while(roles.length<n)roles.push('villager');
+  shuffle(roles);
+  G={players:names.map((name,i)=>({name:name,role:roles[i],alive:true,mayor:false})),
+     nightNo:0,mayor:-1,mayorDone:false,potions:{heal:true,poison:true},
+     phase:'reveal',revealIdx:0,queue:[],step:0,sub:0,wolfVotes:[],
+     victim:-1,poisonVictim:-1,saved:-1,deaths:[],seerRes:null,
+     hunterPending:false,hunterCtx:'',voters:[],vi:0,votes:{},
+     exiled:-1,winner:null};
+}
+
+function checkWin(){
+  const w=aliveWolves().length,others=alive().length-w;
+  if(w===0){G.winner='villagers';G.phase='end';return true;}
+  if(w>=others){G.winner='wolves';G.phase='end';return true;}
+  return false;
+}
+
+// reveal
+function revealShow(){G.phase='revealCard';}
+function revealGot(){G.revealIdx++;if(G.revealIdx>=G.players.length)beginNight();else G.phase='reveal';}
+
+// night
+function beginNight(){
+  G.nightNo++;G.victim=-1;G.poisonVictim=-1;G.saved=-1;G.queue=[];
+  if(alive().some(i=>G.players[i].role==='seer'))G.queue.push('seer');
+  if(aliveWolves().length)G.queue.push('wolves');
+  if(alive().some(i=>G.players[i].role==='witch'))G.queue.push('witch');
+  G.step=0;G.phase='nightIntro';
+}
+function nightStep(){
+  if(G.step>=G.queue.length){dawn();return;}
+  const k=G.queue[G.step];
+  if(k==='seer'){G.phase='seer';}
+  else if(k==='wolves'){G.phase='wolves';G.sub=0;G.wolfVotes=[];}
+  else if(k==='witch'){witchStart();}
+}
+function seerCands(){const me=alive().find(i=>G.players[i].role==='seer');return alive().filter(i=>i!==me);}
+function seerPick(t){const p=G.players[t];G.seerRes={name:p.name,isWolf:p.role==='wolf'};G.phase='seerResult';}
+function seerDone(){G.seerRes=null;G.step++;nightStep();}
+function wolfCands(){return alive().filter(i=>G.players[i].role!=='wolf');}
+function currentWolf(){return aliveWolves()[G.sub];}
+function wolfPick(t){
+  G.wolfVotes.push(t);G.sub++;
+  if(G.sub>=aliveWolves().length){G.victim=tally(G.wolfVotes);G.step++;nightStep();}
+}
+function witchStart(){
+  if(G.victim>=0&&G.potions.heal){G.phase='witchHeal';}
+  else if(G.potions.poison){G.phase='witchPoison';}
+  else{G.step++;nightStep();}
+}
+function witchHeal(yes){
+  if(yes&&G.victim>=0&&G.potions.heal){G.saved=G.victim;G.victim=-1;G.potions.heal=false;}
+  if(G.potions.poison)G.phase='witchPoison';
+  else{G.step++;nightStep();}
+}
+function witchPoisonCands(){const me=alive().find(i=>G.players[i].role==='witch');return alive().filter(i=>i!==me);}
+function witchPoison(t){
+  if(t>=0){G.poisonVictim=t;G.potions.poison=false;}
+  G.step++;nightStep();
+}
+
+// dawn
+function dawn(){
+  const d=[];
+  if(G.victim>=0)d.push(G.victim);
+  if(G.poisonVictim>=0&&d.indexOf(G.poisonVictim)<0)d.push(G.poisonVictim);
+  d.forEach(i=>G.players[i].alive=false);
+  G.deaths=d;
+  G.hunterPending=d.some(i=>G.players[i].role==='hunter');
+  G.hunterCtx='dawn';
+  G.phase='dawn';
+}
+function dawnOk(){
+  if(G.hunterPending)G.phase='hunter';
+  else afterDeaths();
+}
+function afterDeaths(){
+  if(checkWin())return;
+  G.phase='day';
+}
+function hunterCands(){return alive();}
+function hunterShoot(t){
+  if(t>=0&&G.players[t]){G.players[t].alive=false;G.lastShot=t;}
+  G.hunterPending=false;
+  if(G.hunterCtx==='exile')postExile();
+  else afterDeaths();
+}
+
+// day
+function dayNext(){
+  if(!G.mayorDone)startMayor();
+  else startVote();
+}
+function startMayor(){G.phase='mayorVote';G.voters=alive();G.vi=0;G.votes={};}
+function mayorPick(t){
+  const voter=G.voters[G.vi];
+  if(t===voter||!G.players[t].alive)return;
+  G.votes[t]=(G.votes[t]||0)+1;G.vi++;
+  if(G.vi>=G.voters.length)resolveMayor();
+}
+function resolveMayor(){
+  const top=topOf(G.votes);
+  if(top>=0){G.mayor=top;G.players[top].mayor=true;}
+  G.mayorDone=true;G.phase='day';
+}
+function startVote(){G.phase='vote';G.voters=alive();G.vi=0;G.votes={};}
+function voteCands(){return alive().filter(i=>i!==G.voters[G.vi]);}
+function votePick(t){
+  const voter=G.voters[G.vi];
+  if(t===voter||!G.players[t].alive)return;
+  const w=(voter===G.mayor)?2:1;
+  G.votes[t]=(G.votes[t]||0)+w;G.vi++;
+  if(G.vi>=G.voters.length)resolveVote();
+}
+function topOf(votes){
+  const keys=Object.keys(votes);if(!keys.length)return -1;
+  const mx=Math.max(...keys.map(k=>votes[k]));
+  const top=keys.filter(k=>votes[k]===mx);
+  return top.length===1?Number(top[0]):-1;
+}
+function resolveVote(){
+  const ex=topOf(G.votes);
+  G.exiled=ex;
+  if(ex>=0)G.players[ex].alive=false;
+  G.phase='exileResult';
+}
+function exileOk(){
+  if(G.exiled>=0&&G.players[G.exiled].role==='hunter'){G.hunterPending=true;G.hunterCtx='exile';G.phase='hunter';}
+  else postExile();
+}
+function postExile(){
+  if(checkWin())return;
+  beginNight();
+}
+
+// ---------- UI ----------
+function nameOf(i){return esc(G.players[i].name);}
+function render(){
+  const a=$('#app');
+  if(!G)a.innerHTML=vSetup();
+  else a.innerHTML=vGame();
+}
+function vSetup(){
+  const n=S.names.length,w=n>=4?wolfCount(n):0;
+  const opt=(k,l)=>'<button class="opt" aria-pressed="'+!!S.opts[k]+'" data-act="opt" data-k="'+k+'">'+l+'</button>';
+  return '<section class="card">'+
+    '<p class="label">اللاعبون (4 إلى 12)</p>'+
+    '<div class="row"><input id="nm" maxlength="16" placeholder="الاسم" autocomplete="off"><button class="btn half" data-act="add">أضف</button></div>'+
+    '<div class="chips">'+S.names.map((x,i)=>'<span class="chip">'+esc(x)+'<button data-act="rm" data-i="'+i+'" aria-label="حذف">×</button></span>').join('')+'</div>'+
+    '<p class="label" style="margin-top:6px">الأدوار الخاصة</p>'+
+    '<div class="opts">'+opt('seer','العرّافة')+opt('witch','الساحرة')+opt('hunter','الصيّاد')+'</div>'+
+    (n>=4?'<p class="hint">الذئاب: '+w+' · القرويون: '+(n-w)+'</p>':'<p class="hint warn">أضف 4 لاعبين على الأقل.</p>')+
+    '<button class="btn" data-act="start"'+(n<4?' disabled':'')+'>ابدأ اللعبة</button>'+
+    '</section>';
+}
+function listBtns(list,act,extra){
+  return '<div class="list">'+list.map(i=>'<button class="item" data-act="'+act+'" data-t="'+i+'">'+nameOf(i)+'</button>').join('')+'</div>';
+}
+function vGame(){
+  switch(G.phase){
+    case 'reveal':
+      return '<section class="card center"><p class="label">'+(G.revealIdx+1)+' / '+G.players.length+'</p><p class="big">مرّر الهاتف إلى '+nameOf(G.revealIdx)+'</p><button class="btn" data-act="showCard">اعرض دوري</button></section>';
+    case 'revealCard':{
+      const p=G.players[G.revealIdx],r=ROLES[p.role];
+      let extra='';
+      if(p.role==='wolf'){const others=G.players.filter((q,i)=>q.role==='wolf'&&i!==G.revealIdx).map(q=>esc(q.name));extra='<p class="hint">الذئاب معك: '+(others.length?others.join('، '):'ما كاينش')+'</p>';}
+      return '<section class="card center"><p class="label">'+nameOf(G.revealIdx)+'</p><p class="role" style="color:'+r.c+'">'+r.n+'</p><p class="hint">'+r.d+'</p>'+extra+'<button class="btn" data-act="gotIt">فهمت</button></section>';
+    }
+    case 'nightIntro':
+      return '<section class="card center"><p class="label">الليلة '+G.nightNo+'</p><p class="big">أغمضوا أعينكم</p><p class="hint">الكل يغمض عينيه، والراوي ينادي الأدوار.</p><button class="btn" data-act="nightGo">بدأ الليل</button></section>';
+    case 'seer':{
+      return '<section class="card center"><p class="label">العرّافة</p><p class="big">استيقظي واختاري لاعبا</p>'+listBtns(seerCands(),'seerPick')+'</section>';
+    }
+    case 'seerResult':
+      return '<section class="card center"><p class="label">النتيجة للعرّافة فقط</p><p class="big">'+nameOf(G.seerRes?G.players.findIndex(p=>p.name===G.seerRes.name):0)+'</p><p class="role" style="color:'+(G.seerRes&&G.seerRes.isWolf?'var(--danger)':'var(--ok)')+'">'+(G.seerRes&&G.seerRes.isWolf?'ذئب':'ليس ذئبا')+'</p><button class="btn" data-act="seerDone">تم</button></section>';
+    case 'wolves':{
+      const w=currentWolf();
+      return '<section class="card center"><p class="label">الذئاب</p><p class="big">استيقظوا أيها الذئاب</p><p class="hint">الذئب: '+nameOf(w)+' ('+(G.sub+1)+' / '+aliveWolves().length+')</p><p class="hint">اختاروا ضحية، ولا يعرف أحد اختيار الآخر.</p>'+listBtns(wolfCands(),'wolfPick')+'</section>';
+    }
+    case 'witchHeal':
+      return '<section class="card center"><p class="label">الساحرة</p><p class="big">الضحية هذه الليلة: '+nameOf(G.victim)+'</p><p class="hint">تستعملين جرعة الإنقاذ؟</p><div class="row" style="width:100%"><button class="btn" data-act="witchHeal" data-yes="1">أنقذها</button><button class="btn alt" data-act="witchHeal" data-yes="0">لا</button></div></section>';
+    case 'witchPoison':
+      return '<section class="card center"><p class="label">الساحرة</p><p class="big">تسمّمين أحدا؟</p>'+listBtns(witchPoisonCands(),'witchPoison')+'<button class="btn alt" data-act="witchPoison" data-t="-1">لا أحد</button></section>';
+    case 'dawn':{
+      const names=G.deaths.length?G.deaths.map(i=>nameOf(i)).join('، '):'ما ماتش أحد';
+      return '<section class="card center"><p class="label">طلع النهار</p><p class="big">'+names+'</p><p class="hint">'+(G.deaths.length?'مات':'')+'</p><button class="btn" data-act="dawnOk">تابع</button></section>';
+    }
+    case 'hunter':
+      return '<section class="card center"><p class="label">الصيّاد</p><p class="big">الصيّاد ميت، يختار ضحية أخيرة</p>'+listBtns(hunterCands(),'hunterShoot')+'</section>';
+    case 'day':{
+      const names=G.deaths.length?G.deaths.map(i=>nameOf(i)).join('، '):'ما ماتش أحد';
+      const mayorTxt=G.mayor>=0?'<p class="hint">العمدة: '+nameOf(G.mayor)+'</p>':'';
+      return '<section class="card center"><p class="label">النهار</p><p class="hint">ماتو الليلة:</p><p class="big">'+names+'</p>'+mayorTxt+'<p class="hint">ناقشوا، ثم صوّتوا لإقصاء ذئب مشتبه به.</p><button class="btn" data-act="dayNext">'+(G.mayorDone?'التصويت':'انتخاب العمدة')+'</button></section>';
+    }
+    case 'mayorVote':{
+      const v=G.voters[G.vi];
+      return '<section class="card center"><p class="label">انتخاب العمدة</p><p class="big">'+nameOf(v)+' يختار</p>'+listBtns(G.voters.filter(i=>i!==v),'mayorPick')+'</section>';
+    }
+    case 'vote':{
+      const v=G.voters[G.vi];
+      return '<section class="card center"><p class="label">التصويت</p><p class="big">'+nameOf(v)+' يصوّت'+(v===G.mayor?' (صوتان)':'')+'</p>'+listBtns(voteCands(),'votePick')+'</section>';
+    }
+    case 'exileResult':{
+      if(G.exiled<0)return '<section class="card center"><p class="label">التصويت</p><p class="big">تعادل، ما تقصى حتى واحد</p><button class="btn" data-act="exileOk">تابع</button></section>';
+      const p=G.players[G.exiled],r=ROLES[p.role];
+      return '<section class="card center"><p class="label">تم إقصاء</p><p class="big">'+nameOf(G.exiled)+'</p><p class="role" style="color:'+r.c+'">'+r.n+'</p><button class="btn" data-act="exileOk">تابع</button></section>';
+    }
+    case 'end':{
+      const won=G.winner==='villagers'?'فاز القرويون':'فاز الذئاب';
+      const rows=G.players.map(p=>'<div class="res"><span>'+esc(p.name)+(p.alive?'':' ✝')+'</span><span class="tag" style="background:'+ROLES[p.role].c+'">'+ROLES[p.role].n+'</span></div>').join('');
+      return '<section class="card center"><p class="label">النتيجة</p><p class="big" style="color:'+(G.winner==='villagers'?'var(--ok)':'var(--danger)')+'">'+won+'</p></section><section class="card">'+rows+'</section><button class="btn" data-act="again">لعبة جديدة بنفس اللاعبين</button><button class="btn alt" data-act="setup">تغيير الإعدادات</button>';
+    }
+  }
+  return '';
+}
+
+// ---------- events ----------
+function addName(v){
+  v=String(v||'').trim();
+  if(!v){toast('اكتب اسما');return;}
+  if(S.names.some(x=>x.toLowerCase()===v.toLowerCase())){toast('هذا الاسم موجود');return;}
+  if(S.names.length>=12){toast('الحد الأقصى 12 لاعبا');return;}
+  S.names.push(v);saveS();render();
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,t=Number(el.dataset.t),i=Number(el.dataset.i);
+  switch(a){
+    case 'add':addName($('#nm')?$('#nm').value:'');break;
+    case 'rm':S.names.splice(i,1);saveS();render();break;
+    case 'opt':S.opts[el.dataset.k]=!S.opts[el.dataset.k];saveS();render();break;
+    case 'start':
+      if(S.names.length<4){toast('أضف 4 لاعبين على الأقل');break;}
+      makeGame(S.names.slice(),Object.assign({},S.opts));render();break;
+    case 'showCard':revealShow();render();break;
+    case 'gotIt':revealGot();render();break;
+    case 'nightGo':nightStep();render();break;
+    case 'seerPick':seerPick(t);render();break;
+    case 'seerDone':seerDone();render();break;
+    case 'wolfPick':wolfPick(t);render();break;
+    case 'witchHeal':witchHeal(el.dataset.yes==='1');render();break;
+    case 'witchPoison':witchPoison(t);render();break;
+    case 'dawnOk':dawnOk();render();break;
+    case 'hunterShoot':hunterShoot(t);render();break;
+    case 'dayNext':dayNext();render();break;
+    case 'mayorPick':mayorPick(t);render();break;
+    case 'votePick':votePick(t);render();break;
+    case 'exileOk':exileOk();render();break;
+    case 'again':makeGame(G.players.map(p=>p.name),Object.assign({},S.opts));render();break;
+    case 'setup':G=null;render();break;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target&&e.target.id==='nm'){e.preventDefault();addName(e.target.value);}
+});
+
+loadS();
+render();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
